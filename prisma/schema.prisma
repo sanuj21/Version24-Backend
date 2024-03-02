@@ -23,6 +23,18 @@ model User {
 
   rollno String
 
+  role String @default("user")
+
+  isEmailConfirmed Boolean @default(false)
+
+  emailToken String?
+
+  passwordResetToken String?
+
+  passwordResetTokenExpiry DateTime?
+
+  passwordChangedAt DateTime?
+
   createdAt DateTime @default(now())
 
   id Int @default(autoincrement())

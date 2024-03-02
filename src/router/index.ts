@@ -2,13 +2,14 @@ import { Router } from "express";
 import {
   handleUserSignup,
   handleUserLogin,
-  handleUserGenerateOTP,
-  handleUserVerifyOTP,
+  handleForgetPassword,
   handleUserResetPassword,
   handleUserGet,
   handleEventGet,
   authenticate,
   handleEventRegister,
+  handleConfirmEmail,
+  handleCheckUser,
 } from "../controllers/user";
 
 const apirouter = Router();
@@ -20,11 +21,13 @@ apirouter.post("/login", handleUserLogin);
 
 apirouter.post("/signup", handleUserSignup);
 
-apirouter.post("/generateotp", handleUserGenerateOTP);
-
-apirouter.post("/verifyotp", handleUserVerifyOTP);
+apirouter.post("/forgetpassword", handleForgetPassword);
 
 apirouter.post("/resetpassword", handleUserResetPassword);
+
+apirouter.post("/checkuser", handleCheckUser);
+
+apirouter.post("/confirmemail", handleConfirmEmail);
 
 apirouter.get("/user", authenticate, handleUserGet);
 
@@ -33,9 +36,7 @@ apirouter.get("/event", handleEventGet);
 apirouter.post("/registerevent", authenticate, handleEventRegister);
 
 apirouter.get("/isauthenticated", authenticate, (req, res) => {
-  const user = res.locals.context;
-
-  res.status(200).json({ status: "success", user });
+  res.status(200).json({ status: "success" });
 });
 
 export default apirouter;
