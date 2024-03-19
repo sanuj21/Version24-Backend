@@ -12,12 +12,26 @@ import {
   handleCheckUser,
 } from "../controllers/user";
 
+import {
+  getAllUsers,
+  getEventsRegistration,
+  restrictToAdmin,
+  deleteUsers,
+  registerUserForEvent,
+  deleteEventRegistrations,
+} from "../controllers/user/admin";
+import prisma from "../../db/prisma";
+
 const apirouter = Router();
 
 apirouter.get("/test", (req, res) => {
   res.send("test");
 });
 apirouter.post("/login", handleUserLogin);
+apirouter.get("/logout", (req, res) => {
+  res.clearCookie("jwt");
+  res.status(200).json({ status: "success" });
+});
 
 apirouter.post("/signup", handleUserSignup);
 
@@ -35,8 +49,50 @@ apirouter.get("/event", handleEventGet);
 
 apirouter.post("/registerevent", authenticate, handleEventRegister);
 
-apirouter.get("/isauthenticated", authenticate, (req, res) => {
-  res.status(200).json({ status: "success" });
+apirouter.get("/isauthenticated", authenticate, async (req, res) => {
+  const email = res.locals.context.email;
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      email: true,
+      name: true,
+      password: false,
+      university: true,
+      mobile: true,
+      rollno: true,
+      role: true,
+      isEmailConfirmed: true,
+      emailToken: false,
+      passwordResetToken: false,
+      passwordResetTokenExpiry: false,
+      passwordChangedAt: false,
+      createdAt: false,
+      id: true,
+      event: {
+        select: {
+          eventName: true,
+          teamName: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({ status: "error", message: "User not found" });
+  }
+
+  res.status(200).json({ status: "success", data: user });
 });
+
+apirouter.use(authenticate);
+apirouter.use(restrictToAdmin);
+
+apirouter.post("/admin/eventRegistrations", getEventsRegistration);
+apirouter.get("/admin/users", getAllUsers);
+apirouter.delete("/admin/users", deleteUsers);
+apirouter.post("/admin/eventRegistration", registerUserForEvent);
+apirouter.delete("/admin/eventRegistration", deleteEventRegistrations);
 
 export default apirouter;

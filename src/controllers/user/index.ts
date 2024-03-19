@@ -223,6 +223,7 @@ export async function handleUserLogin(
       maxAge: expiresTimeInMs,
 
       // maxAge: Number(process.env.JWT_EXPIRES_IN) * 30 * 1000,
+      domain: ".version24.in",
     });
 
     const { password: _, createdAt, mobile, ...restUser } = user;
@@ -482,8 +483,11 @@ export async function authenticate(
 ) {
   try {
     const cookie = req.headers.cookie;
+
     let _jwttoken;
+
     cookie?.split(";").forEach((cookie) => {
+      cookie = cookie.trim();
       if (cookie.startsWith("jwt")) {
         _jwttoken = cookie.split("=")[1];
         return;
@@ -550,6 +554,19 @@ export async function handleEventRegister(
 
     if (!teamName && emails.length > 1) {
       throw new UserSpecificError("Team name is required");
+    }
+
+    if (teamName !== null && teamName !== undefined && teamName !== "") {
+      const teamNameExists = await prisma.event.findFirst({
+        where: {
+          eventName,
+          teamName,
+        },
+      });
+
+      if (teamNameExists) {
+        throw new UserSpecificError("Team name already exists");
+      }
     }
 
     if (!emails.includes(currentUser)) {
